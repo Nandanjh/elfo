@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELFO Lunar Navigation | Systems Contingency & Risk Mitigation</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+     
+    <!-- Chosen Palette: Deep Space Dark (Base slate-950, cards slate-900, borders slate-800, text slate-100, accent cyan/cobalt, warning amber, success emerald) -->
+    <!-- Application Structure Plan: A high-performance 3-column layout optimized for visual impact and ease of reading.
+         - Left Column (30%): Live elementary simulator, interactive metrics, and expandable telemetry graph.
+         - Middle Column (50%): Core systems engineering report split into 5 navigable sections in simple English.
+         - Right Column (20%): Real-time scrolling autonomous mission log showing active state changes.
+    -->
+    <!-- Visualization & Content Choices:
+         1. Interactive Scenarios: Control buttons trigger physical events that update telemetry indicators and the log.
+         2. Glowing Telemetry Graph: Custom stylized Chart.js line graph with grid lines matching the dark theme.
+         3. Enlarge Graph Modal: Fully animated fullscreen modal for detailed, large-scale data exploration.
+         4. Simplified Content: Exploded technical text with reduced formulas for immediate, jargon-free comprehension.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    
+
+    <style>
+        /* Custom Premium Dark Scrollbars */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1329;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Chart bounds */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+        }
+
+        .modal-chart-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+        }
+
+        /* Glow effects for active state items */
+        .glow-cyan {
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .glow-amber {
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .glow-rose {
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+            border-color: rgba(244, 63, 94, 0.4);
+        }
+
+        /* Pulse animation for simulated hazard alarms */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.015); }
+        }
+        .pulse-active {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+
+        /* Tab Visibility */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-[#030712] text-slate-100 font-sans antialiased selection:bg-cyan-500/20 selection:text-cyan-200 overflow-x-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-[#0b0f19] border-b border-slate-800/80 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 z-30 shadow-lg">
+        <div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center bg-cyan-600/20 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded border border-cyan-500/30 tracking-wider">LUNAR LABS</span>
+                <h1 class="text-base font-bold text-slate-100">ELFO Autonomous Guidance & Contingency</h1>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Systems Resilience & Tactical Risk Assessment suite</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto justify-end">
+            <span class="text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+                Platform Orbit: <strong>10,000 km Elliptical</strong>
+            </span>
+            <div class="flex flex-col text-right">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Made by</span>
+                <span class="text-xs font-bold text-cyan-400 tracking-wide opacity-90">Nandan Jha</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Split: Left (30%), Middle (50%), Right (20%) -->
+    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-65px)] w-full">
+        
+        <!-- ==================== LEFT COLUMN: LIVE ELEMENTARY SIMULATOR (30% Width) ==================== -->
+        <section class="w-full lg:w-[30%] bg-[#080c14] border-b lg:border-b-0 lg:border-r border-slate-800/70 p-5 flex flex-col gap-5 shrink-0">
+            
+            <div class="border-b border-slate-800 pb-3">
+                <h2 class="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                    Elementary Control Suite
+                </h2>
+                <p class="text-[11px] text-slate-400 mt-1">Simulate typical lunar hazards below to trigger localized recovery states.</p>
+            </div>
+
+            <!-- Environmental Hazard Scenario Triggers -->
+            <div>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2.5">Simulate Anomaly Events</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="triggerScenario('nominal')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-cyan-500/40">
+                        <span class="text-base">☀️</span>
+                        <span class="text-[11px]">Normal Uplink</span>
+                    </button>
+                    <button onclick="triggerScenario('crater')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-amber-500/40">
+                        <span class="text-base">🕳️</span>
+                        <span class="text-[11px]">Crater Occlusion</span>
+                    </button>
+                    <button onclick="triggerScenario('eclipse')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-indigo-500/40">
+                        <span class="text-base">🌑</span>
+                        <span class="text-[11px]">Shadow Eclipse</span>
+                    </button>
+                    <button onclick="triggerScenario('slip')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-rose-500/40">
+                        <span class="text-base">⚠️</span>
+                        <span class="text-[11px]">Loose Regolith</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Physical Parameters Grid -->
+            <div id="telemetry-card" class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 transition-all duration-300">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-3">Active System Status</span>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Autonomous Mode:</span>
+                        <span id="telemetry-mode" class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950/50 text-cyan-400 border border-cyan-500/30 transition-all">NOMINAL</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Guidance Latency:</span>
+                        <span id="telemetry-latency" class="text-xs font-mono font-bold text-slate-200">1.28 sec</span>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center text-[11px] text-slate-400 mb-1">
+                            <span>Battery Storage (SoC):</span>
+                            <span id="telemetry-battery-text" class="font-mono font-bold text-slate-200">82%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="telemetry-battery-bar" class="bg-cyan-500 h-full rounded-full transition-all duration-500" style="width: 82%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                        <div>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold block">Traction Slip</span>
+                            <span id="telemetry-slip" class="text-xs font-mono font-bold text-slate-200">6.2%</span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold block">Chassis Temp</span>
+                            <span id="telemetry-temp" class="text-xs font-mono font-bold text-slate-200">18.5 °C</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Profile Visualizer with Expand Button -->
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mission Latency Profile</span>
+                    <button onclick="openChartModal()" class="text-[10px] text-cyan-400 font-bold hover:text-cyan-300 transition flex items-center gap-1 bg-slate-800 px-2 py-1 rounded">
+                        🔍 Enlarge View
+                    </button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="liveTelemetryChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== MIDDLE COLUMN: DETAILED SYSTEMS REPORT (50% Width) ==================== -->
+        <main class="w-full lg:w-[50%] bg-[#050810] p-6 md:p-8 overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-800/70">
+            
+            <!-- Horizontal Quick Tabs inside Middle Column -->
+            <div class="flex flex-wrap border-b border-slate-800/80 mb-6 pb-1 gap-1 sticky top-0 bg-[#050810]/95 backdrop-blur-sm z-10">
+                <button onclick="showReportSection('sec1')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-all" id="tab-sec1">
+                    1. Reliability Intro
+                </button>
+                <button onclick="showReportSection('sec2')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec2">
+                    2. Comm Resilience
+                </button>
+                <button onclick="showReportSection('sec3')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec3">
+                    3. Terrain Mitigation
+                </button>
+                <button onclick="showReportSection('sec4')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec4">
+                    4. Power-Aware Ops
+                </button>
+                <button onclick="showReportSection('sec5')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec5">
+                    5. Risk Matrix & Summary
+                </button>
+            </div>
+
+            <!-- SECTION 1: Introduction to Mission Reliability -->
+            <article id="sec1" class="tab-content active space-y-5">
+                <header class="border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Section 1.0</span>
+                    <h3 class="text-lg font-bold text-slate-100 mt-1">Introduction to Mission Reliability: A Failure-Aware Paradigm</h3>
+                </header>
+                
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Autonomous systems operating in extreme environments, such as the lunar South Pole, demand a fundamental shift from traditional designs toward a highly integrated <strong>"failure-aware" design philosophy</strong>. Unlike terrestrial robotic deployments that fall back on continuous human oversight or robust GPS network coverage, lunar polar exploration occurs under conditions of high communication delay, high terrain-driven signal blockage, and severe solar illumination constraints.
+                </p>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    A failure-aware architecture acknowledges that temporary hardware faults, communication dropouts, and subsystem degradations are certain occurrences rather than rare exceptions. Consequently, the onboard flight computer must actively monitor physical states, environmental variables, and sensor performance levels.
+                </p>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Instead of stopping completely when a minor error occurs, the rover estimates its own overall health in real-time. This onboard calculation continuously evaluates three main variables: the battery voltage, the strength of the communication link, and active sensor diagnostic flags. If any of these parameters drop below normal limits, the vehicle automatically lowers its speed and scales back its activities to protect itself, ensuring it degrades gracefully rather than failing catastrophically.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-800">
+                        <h4 class="font-bold text-slate-100 text-xs uppercase tracking-wide mb-2">Deterministic Operational Challenges</h4>
+                        <ul class="text-[11px] text-slate-300 space-y-1.5 list-disc pl-4">
+                            <li>Low-elevation solar angles (1.5° to 3° above horizon) creating deep, dark shadows.</li>
+                            <li>Highly abrasive lunar regolith causing rapid physical wear on bearings and solar panels.</li>
+                            <li>Sustained cryogenic exposures during local shadow periods plunging temperatures toward -180 °C.</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-cyan-950/20 rounded-xl border border-cyan-800/30">
+                        <h4 class="font-bold text-cyan-300 text-xs uppercase tracking-wide mb-2">Integrated ELFO Orbit Context</h4>
+                        <p class="text-[11px] text-cyan-200/90 leading-relaxed">
+                            The designated ELFO satellite operates in a specialized 10,000 km elliptical orbit. This orbit is mathematically optimized to keep the satellite hovering high above the lunar South Pole for extended periods. This provides much longer lines of sight compared to low lunar orbits, though massive local crater walls can still cause signal dropouts.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+  <img 
+    src="ChatGPT Image May 20, 2026, 07_14_11 PM.png" 
+    alt="Failure-aware orbital control loop systems diagram"
+    class="w-full object-cover opacity-90"
+  />
+
+  <div class="p-4 bg-slate-900 text-slate-400 text-xs italic text-center border-t border-slate-800/80">
+    Functional block schematic of the failure-aware control loop demonstrating
+    state integration between physical sensors and the ELFO orbital timeline.
+  </div>
+</div>
+            </article>
+
+            <!-- SECTION 2: Communication Resilience Strategy -->
+            <article id="sec2" class="tab-content space-y-5">
+                <header class="border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Section 2.0</span>
+                    <h3 class="text-lg font-bold text-slate-100 mt-1">Multi-Layer Communication Resilience Strategy</h3>
+                </header>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    High-speed lunar communication networks operating near the South Pole are highly sensitive to topographic blockages. The surrounding massive mountain peaks and deep rim boundaries of impact craters completely block low-elevation signals. Even when using the specialized <strong>ELFO satellite relay network</strong> (designed with a 10,000 km orbit to maximize high-elevation coverage), local topographical shadow zones can cut the link.
+                </p>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    To mitigate this system vulnerability, we propose a <strong>Hierarchical Three-Tier Operational Protocol</strong>. This state-machine model forces the rover to transition gracefully between operational intensity profiles based on direct signal characteristics, ensuring safety even during severe link dropout phases.
+                </p>
+
+                <!-- Hierarchical Protocol Flow Block Visual -->
+                <div class="p-5 bg-slate-900 rounded-xl border border-slate-800 my-4 space-y-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block text-center">Hierarchical Communication Protocol Flow</span>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="bg-slate-950 p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm text-xs">
+                            <span class="font-bold text-emerald-400 block mb-1">State 1: Nominal</span>
+                            <p class="text-[11px] text-slate-400">Continuous S-band/X-band connection through the ELFO satellite. Full telemetry is actively transmitted.</p>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-lg border-l-4 border-amber-500 shadow-sm text-xs">
+                            <span class="font-bold text-amber-400 block mb-1">State 2: Local Autonomy</span>
+                            <p class="text-[11px] text-slate-400">Signal lost. Scientific payloads halt. Vehicle initiates path planning to retreat to the last known safe zone.</p>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-lg border-l-4 border-cyan-500 shadow-sm text-xs">
+                            <span class="font-bold text-cyan-400 block mb-1">State 3: Deep Hibernation</span>
+                            <p class="text-[11px] text-slate-400">Outage exceeds 60 minutes. Drive motors disabled. Thermal heaters operate at survival threshold to protect electronics.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    This three-state operational design uses a simple decision model based on the duration of the signal loss:
+                </p>
+                
+                <ul class="list-disc pl-5 space-y-2 text-xs text-slate-300">
+                    <li><strong>Under 5 seconds of signal loss:</strong> Considered a minor signal fluctuation; the rover continues nominal operations.</li>
+                    <li><strong>Between 5 seconds and 1 hour of signal loss:</strong> The rover transitions to Localized Autonomous Navigation. It halts scientific instruments and uses onboard sensors to safely navigate back to its last confirmed safe coordinate.</li>
+                    <li><strong>Over 1 hour of signal loss:</strong> The rover enters Deep Hibernation. It powers down all drive systems, focuses all available energy on core thermal survival, and broadcasts a low-power "ping" beacon periodically.</li>
+                </ul>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    This prevent premature transitions triggered by brief signal fades, keeping the rover from wasting precious thermal energy on unnecessary power cycles.
+                </p>
+            </article>
+
+            <!-- SECTION 3: Terrain and Obstacle Mitigation -->
+            <article id="sec3" class="tab-content space-y-5">
+                <header class="border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Section 3.0</span>
+                    <h3 class="text-lg font-bold text-slate-100 mt-1">Terrain and Obstacle Mitigation</h3>
+                </header>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    The mechanical survival of the lunar explorer relies heavily on its ability to traverse extremely steep slopes, deep impact craters, and loose, fine-grained regolith. These surfaces exhibit high mechanical slippage and can cause structural sinkage. The lack of atmospheric erosion means that lunar regolith particles are sharp, jagged, and highly abrasive, which can easily cause premature mechanical failure.
+                </p>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Our proposed mechanical system addresses these extreme physical parameters via an active **Rocker-Bogie mechanical suspension system** coupled with an algorithmic slip-mitigation routine. Instead of relying on human operators on Earth to resolve stuck states, the onboard navigation computer uses active motor torque sensing to detect slippage in real-time.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <h4 class="font-bold text-slate-100 text-xs mb-2">Real-time Slip Estimation Logic</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            The rover continuously monitors wheel slip by comparing the rotational speed of the wheels to the actual forward progress of the vehicle (measured by onboard cameras and ground tracking). If the wheels are spinning but the rover isn't moving, the system detects a slip condition. If this slip exceeds 35%, the rover stops driving, reverses slightly, and attempts a "wheel-walking" maneuver to redistribute physical loading and regain traction.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <h4 class="font-bold text-slate-100 text-xs mb-2">Autonomous Path Planning Adjustment</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            In GPS-denied environments, the vehicle continuously maps surrounding topographic elements using dual-channel LiDAR. If the path ahead has an angle exceeding 15 to 18 degrees, the navigation system artificially inflates the difficulty rating of that path. This forces the auto-pilot pathfinding algorithm to find safe routes around crater walls and rock fields rather than taking risky slopes.
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    By making pathfinding adjustments locally, the rover avoids driving into soft sand traps or down steep crater slopes. The system operates on the assumption that keeping the vehicle physically stable is always more important than reaching a target coordinate quickly.
+                </p>
+
+                <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+  <img 
+    src="ChatGPT Image May 20, 2026, 07_19_16 PM.png"
+    alt="Wheel-walking self extraction sequential bogie articulation diagram"
+    class="w-full object-cover opacity-95"
+  />
+
+  <div class="p-4 bg-slate-900 text-slate-400 text-xs italic text-center border-t border-slate-800/80">
+    Sequential self-extraction diagram showing wheel-walking mechanics and bogie articulation while climbing steep, loose terrain.
+  </div>
+</div>
+            </article>
+
+            <!-- SECTION 4: Power-Aware Operational Planning -->
+            <article id="sec4" class="tab-content space-y-5">
+                <header class="border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Section 4.0</span>
+                    <h3 class="text-lg font-bold text-slate-100 mt-1">Power-Aware Operational Planning</h3>
+                </header>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    The design of solar power systems for high-latitude lunar missions is constrained by extremely low solar elevation angles. This environment results in long shadows, meaning that even minor elevation changes can plunge the solar arrays into deep, freezing shadow. Therefore, the mission’s power architecture must balance the active energy demand of scientific sensors, heaters, and drive motors against the available solar generation.
+                </p>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    To maintain this balance, the system utilizes a **Hibernate-Charge-Move (HCM) cycle**. Rather than trying to drive continuously, the vehicle operates in distinct power-saving blocks:
+                </p>
+
+                <!-- HCM Blocks -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
+                    <div class="bg-indigo-950/35 p-3 rounded-lg border border-indigo-900/50 text-xs">
+                        <span class="font-bold text-indigo-400 block mb-1">1. Hibernate State</span>
+                        <p class="text-slate-400 leading-relaxed text-[11px]">The system enters shadow zones. Non-essential power lines are turned off. Only vital electronics and heaters stay active to survive the cold.</p>
+                    </div>
+                    <div class="bg-amber-950/35 p-3 rounded-lg border border-amber-900/50 text-xs">
+                        <span class="font-bold text-amber-400 block mb-1">2. Charge State</span>
+                        <p class="text-slate-400 leading-relaxed text-[11px]">The rover parks on an incline facing the low sun. The solar panels gather maximum energy to charge the batteries up to 90% capacity.</p>
+                    </div>
+                    <div class="bg-emerald-950/35 p-3 rounded-lg border border-emerald-900/50 text-xs">
+                        <span class="font-bold text-emerald-400 block mb-1">3. Move State</span>
+                        <p class="text-slate-400 leading-relaxed text-[11px]">The rover moves along the planned route to perform science tasks, using the stored battery energy down to a 35% safety threshold.</p>
+                    </div>
+                </div>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    The operational planning model continuously calculates incoming solar power minus active subsystem draw. This energy accounting ensures the rover never drives deeper into a shadowed region than its current battery level permits.
+                </p>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    If the battery charge drops below a strict safety limit (set at 35%), the system overrides all other mission tasks and transitions immediately into the Hibernation State. It turns off all drive systems, stops scientific instruments, and positions its solar panels at an angle that maximizes sunlight capture, waiting for the battery charge to recover.
+                </p>
+            </article>
+
+            <!-- SECTION 5: Risk Assessment Matrix & Summary -->
+            <article id="sec5" class="tab-content space-y-5">
+                <header class="border-b border-slate-800 pb-3">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Section 5.0</span>
+                    <h3 class="text-lg font-bold text-slate-100 mt-1">Systems-Level Risk Assessment Matrix & Summary</h3>
+                </header>
+
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    This interactive **Risk Assessment Matrix** lists the identified critical failure points of the mission, categorized by sub-system. Use the filter buttons below to focus on specific systems engineering domains and review their severity level and designed mitigation procedures.
+                </p>
+
+                <!-- Dynamic Filter Buttons -->
+                <div class="flex flex-wrap gap-1 mb-4">
+                    <button onclick="filterRisks('All')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-800 text-white border border-slate-700 transition-all">
+                        All Systems
+                    </button>
+                    <button onclick="filterRisks('Comm')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                        Communication
+                    </button>
+                    <button onclick="filterRisks('Thermal')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                        Thermal
+                    </button>
+                    <button onclick="filterRisks('Mech')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                        Mechanical
+                    </button>
+                    <button onclick="filterRisks('Power')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                        Power
+                    </button>
+                </div>
+
+                <!-- Risk Table -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-[11px] border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                    <th class="p-3 font-bold uppercase tracking-wider">Sub-System</th>
+                                    <th class="p-3 font-bold uppercase tracking-wider">Failure Mode</th>
+                                    <th class="p-3 font-bold uppercase tracking-wider">Impact</th>
+                                    <th class="p-3 font-bold uppercase tracking-wider">Probability</th>
+                                    <th class="p-3 font-bold uppercase tracking-wider">Mitigation Strategy</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interactive-risk-rows" class="divide-y divide-slate-800 text-slate-300">
+                                <!-- Populated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Technical Conclusion -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 mt-4">
+                    <h4 class="font-bold text-slate-100 text-xs mb-2">Systems Engineering Summary</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        To successfully navigate the harsh, unpredictable environments of the lunar South Pole, the mission design must prioritize resilience over raw performance. Combining the high-altitude coverage of the **ELFO satellite network** with intelligent, onboard autonomous decision-making creates a layered defense against critical mission failures.
+                    </p>
+                    <p class="text-xs text-slate-400 leading-relaxed mt-2">
+                        Whether facing an unexpected signal dropout behind a crater rim, high regolith slippage on a steep slope, or a drop in solar power, the rover can safely navigate itself using these integrated fallback states. This design mitigates risks locally and ensures high system reliability, safeguarding the lunar exploration payload.
+                    </p>
+                </div>
+            </article>
+
+        </main>
+
+        <!-- ==================== RIGHT COLUMN: MISSION LOG FEED (20% Width) ==================== -->
+        <section class="w-full lg:w-[20%] bg-[#080c14] text-slate-200 p-4 flex flex-col shrink-0 border-t lg:border-t-0 border-slate-800/70">
+            
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Mission Console Log
+                </span>
+                <span class="text-[9px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">UTC-L</span>
+            </div>
+
+            <!-- Virtual Systems Mission Log Console -->
+            <div id="mission-console-log" class="flex-1 overflow-y-auto space-y-2.5 font-mono text-[11px] text-slate-300 pr-1 max-h-[350px] lg:max-h-[none]">
+                <p class="text-slate-500">[14:29:01] Initialization complete. ELFO orbital link established.</p>
+                <p class="text-emerald-400">[14:29:03] State: NOMINAL. Satellite altitude: 10,000 km.</p>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80 text-center">
+                <p class="text-[9px] text-slate-600 font-mono">Designed & Developed by Nandan Jha</p>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- Graph Expand Modal -->
+    <div id="chart-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4">
+        <div class="bg-slate-950 border border-slate-800 w-full max-w-4xl p-6 rounded-2xl shadow-2xl relative">
+            <button onclick="closeChartModal()" class="absolute top-4 right-4 bg-slate-900 hover:bg-slate-800 text-slate-300 w-8 h-8 rounded-full flex justify-center items-center font-bold">
+                ✕
+            </button>
+            <h3 class="text-base font-bold text-slate-100 mb-1 flex items-center gap-2">
+                📊 Detailed Mission Profile Graph
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">Expanded view showing comparative telemetry tracking of internal battery state and real-time guidance latency spikes.</p>
+            <div class="modal-chart-container">
+                <canvas id="expandedTelemetryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Implementation -->
+    <script>
+        // --- Core Application State Management ---
+        const state = {
+            currentTab: 'sec1',
+            telemetry: {
+                battery: 82,
+                latency: 1.28,
+                slip: 6.2,
+                temp: 18.5,
+                mode: 'NOMINAL'
+            },
+            timeline: Array.from({length: 12}, (_, i) => `${i*2}m`),
+            batteryHistory: [80, 81, 82, 82, 81, 80, 82, 82, 81, 80, 81, 82],
+            latencyHistory: [1.2, 1.3, 1.2, 1.4, 1.3, 1.2, 1.3, 1.2, 1.3, 1.4, 1.3, 1.2]
+        };
+
+        let primaryChart = null;
+        let expandedChart = null;
+
+        // --- Tab Selection Logic ---
+        function showReportSection(sectionId) {
+            // Hide all tab sections
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+
+            // Update tab button styles
+            document.querySelectorAll('.sec-tab-btn').forEach(btn => {
+                btn.classList.remove('text-cyan-400', 'border-b-2', 'border-cyan-400');
+                btn.classList.add('text-slate-400', 'hover:text-slate-100');
+            });
+            const activeTabBtn = document.getElementById('tab-' + sectionId);
+            activeTabBtn.classList.remove('text-slate-400', 'hover:text-slate-100');
+            activeTabBtn.classList.add('text-cyan-400', 'border-b-2', 'border-cyan-400');
+            
+            // Scroll middle pane to top smoothly
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Simulated Console Logger ---
+        function logToConsole(message, type = 'info') {
+            const consoleEl = document.getElementById('mission-console-log');
+            const p = document.createElement('p');
+            
+            const timestamp = new Date().toTimeString().split(' ')[0];
+            
+            if (type === 'error') {
+                p.className = 'text-rose-400';
+            } else if (type === 'success') {
+                p.className = 'text-emerald-400';
+            } else if (type === 'warning') {
+                p.className = 'text-amber-400';
+            } else {
+                p.className = 'text-slate-300';
+            }
+            
+            p.innerHTML = `[${timestamp}] ${message}`;
+            consoleEl.appendChild(p);
+            
+            // Auto scroll console to bottom
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // --- Chart.js Styles for Dark Mode ---
+        const chartOptions = (isModal = false) => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { boxWidth: 10, color: '#94a3b8', font: { size: isModal ? 11 : 9 } }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    min: 0,
+                    max: 100,
+                    grid: { color: '#1e293b' },
+                    ticks: { color: '#94a3b8', font: { size: isModal ? 10 : 8 } }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    min: 0,
+                    max: 10,
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: '#94a3b8', font: { size: isModal ? 10 : 8 } }
+                },
+                x: {
+                    ticks: { color: '#94a3b8', font: { size: isModal ? 10 : 8 } },
+                    grid: { display: false }
+                }
+            }
+        });
+
+        // Initialize Charts
+        function initCharts() {
+            const ctxPrimary = document.getElementById('liveTelemetryChart').getContext('2d');
+            primaryChart = new Chart(ctxPrimary, {
+                type: 'line',
+                data: {
+                    labels: state.timeline,
+                    datasets: [
+                        {
+                            label: 'Battery SoC (%)',
+                            data: state.batteryHistory,
+                            borderColor: '#10b981', // Emerald 500
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Relay Latency (s)',
+                            data: state.latencyHistory,
+                            borderColor: '#06b6d4', // Cyan 500
+                            backgroundColor: 'rgba(6, 182, 212, 0.05)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: chartOptions(false)
+            });
+        }
+
+        // --- Expand/Enlarge Modal Logic ---
+        function openChartModal() {
+            document.getElementById('chart-modal').classList.remove('hidden');
+            
+            // Build expanded chart inside the modal
+            setTimeout(() => {
+                const ctxModal = document.getElementById('expandedTelemetryChart').getContext('2d');
+                if (expandedChart) expandedChart.destroy();
+                
+                expandedChart = new Chart(ctxModal, {
+                    type: 'line',
+                    data: {
+                        labels: state.timeline,
+                        datasets: [
+                            {
+                                label: 'Battery SoC (%)',
+                                data: state.batteryHistory,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                tension: 0.3,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Relay Latency (s)',
+                                data: state.latencyHistory,
+                                borderColor: '#06b6d4',
+                                backgroundColor: 'rgba(6, 182, 212, 0.08)',
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                tension: 0.3,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: chartOptions(true)
+                });
+            }, 100);
+        }
+
+        function closeChartModal() {
+            document.getElementById('chart-modal').classList.add('hidden');
+            if (expandedChart) expandedChart.destroy();
+        }
+
+        // --- Interactive Scenario Core Engine ---
+        function triggerScenario(scenario) {
+            const cardEl = document.getElementById('telemetry-card');
+            const modeEl = document.getElementById('telemetry-mode');
+            const latencyEl = document.getElementById('telemetry-latency');
+            const batteryTextEl = document.getElementById('telemetry-battery-text');
+            const batteryBarEl = document.getElementById('telemetry-battery-bar');
+            const slipEl = document.getElementById('telemetry-slip');
+            const tempEl = document.getElementById('telemetry-temp');
+
+            // Reset dynamic styles and glows
+            cardEl.className = 'p-4 bg-slate-900/60 rounded-xl border border-slate-800 transition-all duration-300';
+            modeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded transition-all';
+
+            if (scenario === 'nominal') {
+                state.telemetry = { battery: 85, latency: 1.28, slip: 5.5, temp: 19.1, mode: 'NOMINAL' };
+                
+                cardEl.classList.add('glow-cyan');
+                modeEl.classList.add('bg-cyan-950/50', 'text-cyan-400', 'border', 'border-cyan-500/30');
+                modeEl.textContent = 'NOMINAL';
+                
+                latencyEl.textContent = '1.28 seconds';
+                slipEl.textContent = '5.5%';
+                tempEl.textContent = '19.1 °C';
+
+                logToConsole('Environmental change: Nominal solar access re-established.', 'success');
+                logToConsole('ELFO high-gain link locked. Bandwidth optimal.', 'info');
+                
+                showReportSection('sec2');
+            } 
+            else if (scenario === 'crater') {
+                state.telemetry = { battery: 74, latency: 9.85, slip: 14.8, temp: 12.0, mode: 'LOCAL AUTONOMY' };
+                
+                cardEl.classList.add('glow-amber', 'pulse-active');
+                modeEl.classList.add('bg-amber-950/50', 'text-amber-400', 'border', 'border-amber-500/30');
+                modeEl.textContent = 'LOCAL AUTONOMY';
+                
+                latencyEl.textContent = '9.85 seconds';
+                slipEl.textContent = '14.8%';
+                tempEl.textContent = '12.0 °C';
+
+                logToConsole('WARNING: Entering crater shadow line. Signal level dropping.', 'warning');
+                logToConsole('ELFO line-of-sight occluded. Switching navigation control to Local Path Planner.', 'warning');
+                
+                showReportSection('sec3');
+            } 
+            else if (scenario === 'eclipse') {
+                state.telemetry = { battery: 28, latency: 99.9, slip: 0.0, temp: -5.2, mode: 'DEEP HIBERNATION' };
+                
+                cardEl.classList.add('glow-rose');
+                modeEl.classList.add('bg-indigo-950/50', 'text-indigo-400', 'border', 'border-indigo-500/30');
+                modeEl.textContent = 'HIBERNATION';
+                
+                latencyEl.textContent = 'NO SIGNAL';
+                slipEl.textContent = '0.0%';
+                tempEl.textContent = '-5.2 °C';
+
+                logToConsole('CRITICAL: Eclipse initiated. Available solar irradiance drops to 0.', 'error');
+                logToConsole('Battery capacity under safety limit (< 35%). Halting active movement.', 'error');
+                logToConsole('System State: DEEP HIBERNATION. Thermal management active.', 'warning');
+                
+                showReportSection('sec4');
+            } 
+            else if (scenario === 'slip') {
+                state.telemetry = { battery: 68, latency: 1.45, slip: 48.6, temp: 24.8, mode: 'RECOVERY ACTION' };
+                
+                cardEl.classList.add('glow-rose', 'pulse-active');
+                modeEl.classList.add('bg-rose-950/50', 'text-rose-400', 'border', 'border-rose-500/30');
+                modeEl.textContent = 'SLIP RECOVERY';
+                
+                latencyEl.textContent = '1.45 seconds';
+                slipEl.textContent = '48.6%';
+                tempEl.textContent = '24.8 °C';
+
+                logToConsole('WARNING: High traction slip detected on drive wheels.', 'warning');
+                logToConsole('Initiating mechanical self-extraction. Rocker-bogie bogie shift activated.', 'info');
+                
+                showReportSection('sec3');
+            }
+
+            // Sync visual battery indicators
+            batteryTextEl.textContent = `${state.telemetry.battery}%`;
+            batteryBarEl.style.width = `${state.telemetry.battery}%`;
+            if (state.telemetry.battery < 35) {
+                batteryBarEl.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
+            } else if (state.telemetry.battery < 60) {
+                batteryBarEl.className = "bg-amber-500 h-full rounded-full transition-all duration-500";
+            } else {
+                batteryBarEl.className = "bg-cyan-500 h-full rounded-full transition-all duration-500";
+            }
+
+            // Update telemetry lists
+            state.batteryHistory.shift();
+            state.batteryHistory.push(state.telemetry.battery);
+            state.latencyHistory.shift();
+            state.latencyHistory.push(state.telemetry.latency === 'NO SIGNAL' ? 10 : state.telemetry.latency);
+            
+            primaryChart.update();
+        }
+
+        // --- Risk Assessment Data & Filtering Logic ---
+        const riskTableData = [
+            { system: 'Comm', name: 'Topographic Blockage', impact: 'High', prob: 'High', mitigation: 'Three-tiered fallback logic initiates Local Autonomy to drive out of shadow zones.' },
+            { system: 'Comm', name: 'Signal Interference', impact: 'Medium', prob: 'Medium', mitigation: 'Adaptive signal tracking coupled with 10,000 km orbital altitude design.' },
+            { system: 'Thermal', name: 'Cryogenic Part Seizure', impact: 'High', prob: 'Low', mitigation: 'Localized resistive heaters and thermal blankets keeping internal box above -20 °C.' },
+            { system: 'Thermal', name: 'Solar Heat Overload', impact: 'Medium', prob: 'Low', mitigation: 'Surface-mounted reflective elements rejecting excess solar energy.' },
+            { system: 'Mech', name: 'Regolith Sand Trapping', impact: 'High', prob: 'Medium', mitigation: 'Independent rocker-bogie control. Wheel walking extraction algorithm.' },
+            { system: 'Mech', name: 'Drive Gear Jamming', impact: 'High', prob: 'Low', mitigation: 'Sealed gear assemblies prevent abrasive lunar dust from entering.' },
+            { system: 'Power', name: 'Low Battery (< 35% SoC)', impact: 'High', prob: 'Medium', mitigation: 'Automated transition to Deep Hibernation mode with solar array positioning.' }
+        ];
+
+        function filterRisks(systemFilter) {
+            document.querySelectorAll('.risk-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
+            });
+            
+            event.target.classList.add('bg-slate-800', 'text-white');
+            event.target.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+
+            renderRiskTable(systemFilter);
+        }
+
+        function renderRiskTable(filter) {
+            const tbody = document.getElementById('interactive-risk-rows');
+            tbody.innerHTML = '';
+
+            const filteredData = filter === 'All' ? riskTableData : riskTableData.filter(item => item.system === filter);
+
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/40 transition';
+
+                const impactStyle = row.impact === 'High' ? 'text-rose-400 font-bold' : 'text-amber-400 font-semibold';
+                const probStyle = row.prob === 'High' ? 'text-rose-400 font-bold' : (row.prob === 'Medium' ? 'text-amber-400 font-semibold' : 'text-emerald-400 font-semibold');
+
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-100 border-b border-slate-800/80">${row.system}</td>
+                    <td class="p-3 text-slate-300 font-medium border-b border-slate-800/80">${row.name}</td>
+                    <td class="p-3 ${impactStyle} border-b border-slate-800/80">${row.impact}</td>
+                    <td class="p-3 ${probStyle} border-b border-slate-800/80">${row.prob}</td>
+                    <td class="p-3 text-slate-400 leading-relaxed border-b border-slate-800/80 text-[10px]">${row.mitigation}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Run primary components on window completion
+        window.addEventListener('DOMContentLoaded', () => {
+            renderRiskTable('All');
+            initCharts();
+        });
+    </script>
+</body>
+</html>
