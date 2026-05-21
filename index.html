@@ -5,171 +5,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ELFO Lunar Navigation | Systems Contingency & Risk Mitigation</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Chart.js -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-     
-    <!-- Chosen Palette: Deep Space Dark (Base slate-950, cards slate-900, borders slate-800, text slate-100, accent cyan/cobalt, warning amber, success emerald) -->
-    <!-- Application Structure Plan: A high-performance 3-column layout optimized for visual impact and ease of reading.
-         - Left Column (30%): Live elementary simulator, interactive metrics, and expandable telemetry graph.
-         - Middle Column (50%): Core systems engineering report split into 5 navigable sections in simple English.
-         - Right Column (20%): Real-time scrolling autonomous mission log showing active state changes.
-    -->
-    <!-- Visualization & Content Choices:
-         1. Interactive Scenarios: Control buttons trigger physical events that update telemetry indicators and the log.
-         2. Glowing Telemetry Graph: Custom stylized Chart.js line graph with grid lines matching the dark theme.
-         3. Enlarge Graph Modal: Fully animated fullscreen modal for detailed, large-scale data exploration.
-         4. Simplified Content: Exploded technical text with reduced formulas for immediate, jargon-free comprehension.
+    <!-- 
+    Chosen Palette: Deep Space Dark (Base black/slate-950, panels slate-900/80, borders slate-800, text slate-200, accent cyan/emerald/amber) -->
+    <!-- Application Structure Plan: 
+         - A premium 3-column dashboard with an arctic space theme.
+         - Left Column (30% width): Interactive elementary simulator, status cards, and mini telemetry graph.
+         - Middle Column (50% width): Main technical report navigated by 5 highly physical, tactile card buttons.
+         - Right Column (20% width): Live scrolling terminal showing timestamped system logs.
+         - Enlarge Modal: Contains a 2500px wide, horizontally-scrollable historical telemetry chart linked to simulated actions.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     
 
     <style>
-        /* Custom Premium Dark Scrollbars */
+        /* Custom Space Theme Scrollbars */
         ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #0b1329;
+            background: #090d16;
         }
         ::-webkit-scrollbar-thumb {
             background: #1e293b;
             border-radius: 4px;
+            border: 1px solid #334155;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #334155;
+            background: #0891b2;
         }
 
-        /* Chart bounds */
+        /* Chart constraints */
         .chart-container {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: 180px;
         }
 
-        .modal-chart-container {
-            position: relative;
+        /* Modal scroll container styles */
+        .modal-scroll-wrapper {
+            overflow-x: auto;
+            overflow-y: hidden;
             width: 100%;
-            height: 450px;
+            background-color: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
         }
 
-        /* Glow effects for active state items */
-        .glow-cyan {
-            box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
-            border-color: rgba(6, 182, 212, 0.4);
-        }
-        .glow-emerald {
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-        .glow-amber {
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
-            border-color: rgba(245, 158, 11, 0.4);
-        }
-        .glow-rose {
-            box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
-            border-color: rgba(244, 63, 94, 0.4);
+        /* Forces Chart canvas to stretch, initiating horizontal scrolling */
+        .modal-scroll-inner {
+            width: 2500px;
+            height: 420px;
         }
 
-        /* Pulse animation for simulated hazard alarms */
-        @keyframes subtle-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.85; transform: scale(1.015); }
+        /* Hardware glow & dimension styles for distinct buttons */
+        .distinct-btn {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            box-shadow: inset 0 1px 0px rgba(255, 255, 255, 0.05), 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .pulse-active {
-            animation: subtle-pulse 2s infinite ease-in-out;
+        .distinct-btn:hover {
+            border-color: #0891b2;
+            transform: translateY(-1px);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+        }
+        .distinct-btn:active {
+            transform: translateY(1px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        }
+        .distinct-btn-active {
+            background: linear-gradient(135deg, #024e68 0%, #083344 100%) !important;
+            border-color: #06b6d4 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(6, 182, 212, 0.35), inset 0 1px 0px rgba(255, 255, 255, 0.1) !important;
         }
 
-        /* Tab Visibility */
+        /* Soft fade-in for dynamic content tabs */
         .tab-content {
             display: none;
+            animation: tabFadeIn 0.3s ease-in-out forwards;
         }
         .tab-content.active {
             display: block;
         }
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom glow styles */
+        .panel-glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.08); }
+        .panel-glow-amber { box-shadow: 0 0 15px rgba(245, 158, 11, 0.08); }
+        .panel-glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.08); }
+        .panel-glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.08); }
     </style>
 </head>
-<body class="bg-[#030712] text-slate-100 font-sans antialiased selection:bg-cyan-500/20 selection:text-cyan-200 overflow-x-hidden">
+<body class="bg-[#02050e] text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-cyan-500/20 selection:text-cyan-200">
 
-    <!-- Top Navigation Header -->
-    <header class="bg-[#0b0f19] border-b border-slate-800/80 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 z-30 shadow-lg">
+    <!-- Header Navigation -->
+    <header class="bg-[#080d1a] border-b border-slate-800/80 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 z-30 shadow-md">
         <div>
             <div class="flex items-center gap-3">
-                <span class="inline-flex items-center bg-cyan-600/20 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded border border-cyan-500/30 tracking-wider">LUNAR LABS</span>
-                <h1 class="text-base font-bold text-slate-100">ELFO Autonomous Guidance & Contingency</h1>
+                <h1 class="text-base font-extrabold tracking-tight text-slate-100">ELFO-Guided Autonomous Lunar Navigation</h1>
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Systems Resilience & Tactical Risk Assessment suite</p>
+            <p class="text-xs text-slate-400 mt-0.5">Systems Contingency, Robustness, and Risk Mitigation Suite</p>
         </div>
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full md:w-auto justify-end">
-            <span class="text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
-                Platform Orbit: <strong>10,000 km Elliptical</strong>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto justify-end">
+            <span class="text-xs text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
+                Relay: <strong>10,000 km Orbit Model</strong>
             </span>
-            <div class="flex flex-col text-right">
-                <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Made by</span>
+            <div class="flex flex-col text-left md:text-right">
+                <span class="text-[9px] uppercase font-bold tracking-widest text-slate-500">System Architect</span>
                 <span class="text-xs font-bold text-cyan-400 tracking-wide opacity-90">Nandan Jha</span>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Split: Left (30%), Middle (50%), Right (20%) -->
-    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-65px)] w-full">
+    <!-- Main Dashboard Body: 3 Column Distribution -->
+    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-69px)] w-full">
         
-        <!-- ==================== LEFT COLUMN: LIVE ELEMENTARY SIMULATOR (30% Width) ==================== -->
-        <section class="w-full lg:w-[30%] bg-[#080c14] border-b lg:border-b-0 lg:border-r border-slate-800/70 p-5 flex flex-col gap-5 shrink-0">
+        <!-- ==================== LEFT COLUMN: SIMULATOR PANEL (30% Width) ==================== -->
+        <aside class="w-full lg:w-[30%] bg-[#050912] border-b lg:border-b-0 lg:border-r border-slate-800/80 p-5 flex flex-col gap-5 shrink-0">
             
             <div class="border-b border-slate-800 pb-3">
-                <h2 class="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-                    Elementary Control Suite
+                <h2 class="text-xs font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Hazard Simulator
                 </h2>
-                <p class="text-[11px] text-slate-400 mt-1">Simulate typical lunar hazards below to trigger localized recovery states.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Select an environmental anomaly to evaluate how the rover’s onboard recovery states adapt autonomously.</p>
             </div>
 
-            <!-- Environmental Hazard Scenario Triggers -->
-            <div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2.5">Simulate Anomaly Events</span>
+            <!-- Environmental Trigger System -->
+            <div class="space-y-2">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Anomalies Triggers</span>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="triggerScenario('nominal')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-cyan-500/40">
-                        <span class="text-base">☀️</span>
-                        <span class="text-[11px]">Normal Uplink</span>
+                    <button onclick="triggerScenario('nominal')" class="p-3 text-left rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/50 transition flex flex-col justify-between h-16 group">
+                        <span class="text-lg">☀️</span>
+                        <span class="text-[11px] font-bold text-slate-300 group-hover:text-cyan-400 transition">Normal Uplink</span>
                     </button>
-                    <button onclick="triggerScenario('crater')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-amber-500/40">
-                        <span class="text-base">🕳️</span>
-                        <span class="text-[11px]">Crater Occlusion</span>
+                    <button onclick="triggerScenario('crater')" class="p-3 text-left rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-800/50 transition flex flex-col justify-between h-16 group">
+                        <span class="text-lg">🕳️</span>
+                        <span class="text-[11px] font-bold text-slate-300 group-hover:text-amber-400 transition">Crater Occlusion</span>
                     </button>
-                    <button onclick="triggerScenario('eclipse')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-indigo-500/40">
-                        <span class="text-base">🌑</span>
-                        <span class="text-[11px]">Shadow Eclipse</span>
+                    <button onclick="triggerScenario('eclipse')" class="p-3 text-left rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/40 hover:bg-slate-800/50 transition flex flex-col justify-between h-16 group">
+                        <span class="text-lg">🌑</span>
+                        <span class="text-[11px] font-bold text-slate-300 group-hover:text-indigo-400 transition">Solar Eclipse</span>
                     </button>
-                    <button onclick="triggerScenario('slip')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-all text-left flex flex-col justify-between h-14 hover:border-rose-500/40">
-                        <span class="text-base">⚠️</span>
-                        <span class="text-[11px]">Loose Regolith</span>
+                    <button onclick="triggerScenario('slip')" class="p-3 text-left rounded-xl bg-slate-900 border border-slate-800 hover:border-rose-500/40 hover:bg-slate-800/50 transition flex flex-col justify-between h-16 group">
+                        <span class="text-lg">⚠️</span>
+                        <span class="text-[11px] font-bold text-slate-300 group-hover:text-rose-400 transition">Loose Regolith</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Active Physical Parameters Grid -->
-            <div id="telemetry-card" class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 transition-all duration-300">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-3">Active System Status</span>
+            <!-- Active Physical Parameters Panel -->
+            <div id="telemetry-card" class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 transition-all duration-300 panel-glow-cyan">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-3">Live Navigation Variables</span>
                 
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-xs text-slate-400">Autonomous Mode:</span>
-                        <span id="telemetry-mode" class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950/50 text-cyan-400 border border-cyan-500/30 transition-all">NOMINAL</span>
+                        <span class="text-xs text-slate-400">Onboard State:</span>
+                        <span id="telemetry-mode" class="text-[10px] font-bold px-2.5 py-0.5 rounded bg-cyan-950/50 text-cyan-400 border border-cyan-500/30">NOMINAL</span>
                     </div>
                     
                     <div class="flex justify-between items-center">
-                        <span class="text-xs text-slate-400">Guidance Latency:</span>
-                        <span id="telemetry-latency" class="text-xs font-mono font-bold text-slate-200">1.28 sec</span>
+                        <span class="text-xs text-slate-400">Signal Latency:</span>
+                        <span id="telemetry-latency" class="text-xs font-mono font-bold text-slate-200">1.28 seconds</span>
                     </div>
                     
                     <div>
-                        <div class="flex justify-between items-center text-[11px] text-slate-400 mb-1">
-                            <span>Battery Storage (SoC):</span>
+                        <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+                            <span>Battery Charge (SoC):</span>
                             <span id="telemetry-battery-text" class="font-mono font-bold text-slate-200">82%</span>
                         </div>
                         <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -183,19 +196,19 @@
                             <span id="telemetry-slip" class="text-xs font-mono font-bold text-slate-200">6.2%</span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-500 uppercase font-bold block">Chassis Temp</span>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold block">Internal Temp</span>
                             <span id="telemetry-temp" class="text-xs font-mono font-bold text-slate-200">18.5 °C</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Chart Profile Visualizer with Expand Button -->
+            <!-- Mini Live Graph View -->
             <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 relative">
                 <div class="flex justify-between items-center mb-3">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mission Latency Profile</span>
-                    <button onclick="openChartModal()" class="text-[10px] text-cyan-400 font-bold hover:text-cyan-300 transition flex items-center gap-1 bg-slate-800 px-2 py-1 rounded">
-                        🔍 Enlarge View
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Instantaneous Metrics</span>
+                    <button onclick="openChartModal()" class="text-[10px] text-cyan-400 font-bold hover:text-cyan-300 transition flex items-center gap-1 bg-slate-800 px-2.5 py-1 rounded border border-slate-700 hover:border-cyan-500/30">
+                        Expand History ➔
                     </button>
                 </div>
                 <div class="chart-container">
@@ -203,27 +216,32 @@
                 </div>
             </div>
 
-        </section>
+        </aside>
 
-        <!-- ==================== MIDDLE COLUMN: DETAILED SYSTEMS REPORT (50% Width) ==================== -->
-        <main class="w-full lg:w-[50%] bg-[#050810] p-6 md:p-8 overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-800/70">
+        <!-- ==================== MIDDLE COLUMN: DETAILED REPORT (50% Width) ==================== -->
+        <main class="w-full lg:w-[50%] bg-[#04070e] p-6 md:p-8 overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-800/80">
             
-            <!-- Horizontal Quick Tabs inside Middle Column -->
-            <div class="flex flex-wrap border-b border-slate-800/80 mb-6 pb-1 gap-1 sticky top-0 bg-[#050810]/95 backdrop-blur-sm z-10">
-                <button onclick="showReportSection('sec1')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-all" id="tab-sec1">
-                    1. Reliability Intro
+            <!-- Real Distinct Buttons Navigation -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8 bg-slate-950 p-2 rounded-xl border border-slate-800/80 sticky top-0 z-10 backdrop-blur-md">
+                <button onclick="showReportSection('sec1')" id="tab-sec1" class="distinct-btn distinct-btn-active px-2.5 py-3 text-[10px] font-bold rounded-lg text-slate-300 flex flex-col items-center justify-center text-center gap-1">
+                    <span class="text-base">📋</span>
+                    <span>1. Reliability</span>
                 </button>
-                <button onclick="showReportSection('sec2')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec2">
-                    2. Comm Resilience
+                <button onclick="showReportSection('sec2')" id="tab-sec2" class="distinct-btn px-2.5 py-3 text-[10px] font-bold rounded-lg text-slate-300 flex flex-col items-center justify-center text-center gap-1">
+                    <span class="text-base">🛰️</span>
+                    <span>2. Comm</span>
                 </button>
-                <button onclick="showReportSection('sec3')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec3">
-                    3. Terrain Mitigation
+                <button onclick="showReportSection('sec3')" id="tab-sec3" class="distinct-btn px-2.5 py-3 text-[10px] font-bold rounded-lg text-slate-300 flex flex-col items-center justify-center text-center gap-1">
+                    <span class="text-base">🪨</span>
+                    <span>3. Terrain</span>
                 </button>
-                <button onclick="showReportSection('sec4')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec4">
-                    4. Power-Aware Ops
+                <button onclick="showReportSection('sec4')" id="tab-sec4" class="distinct-btn px-2.5 py-3 text-[10px] font-bold rounded-lg text-slate-300 flex flex-col items-center justify-center text-center gap-1">
+                    <span class="text-base">🔋</span>
+                    <span>4. Power</span>
                 </button>
-                <button onclick="showReportSection('sec5')" class="sec-tab-btn px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-100 transition-all" id="tab-sec5">
-                    5. Risk Matrix & Summary
+                <button onclick="showReportSection('sec5')" id="tab-sec5" class="distinct-btn px-2.5 py-3 text-[10px] font-bold rounded-lg text-slate-300 flex flex-col items-center justify-center text-center gap-1">
+                    <span class="text-base">📊</span>
+                    <span>5. Risk Matrix</span>
                 </button>
             </div>
 
@@ -251,7 +269,7 @@
                         <h4 class="font-bold text-slate-100 text-xs uppercase tracking-wide mb-2">Deterministic Operational Challenges</h4>
                         <ul class="text-[11px] text-slate-300 space-y-1.5 list-disc pl-4">
                             <li>Low-elevation solar angles (1.5° to 3° above horizon) creating deep, dark shadows.</li>
-                            <li>Highly abrasive lunar regolith causing rapid physical wear on bearings and solar panels.</li>
+                            <li>Highly abrasive lunar regolith causing physical wear on bearings and solar panels.</li>
                             <li>Sustained cryogenic exposures during local shadow periods plunging temperatures toward -180 °C.</li>
                         </ul>
                     </div>
@@ -299,15 +317,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div class="bg-slate-950 p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm text-xs">
                             <span class="font-bold text-emerald-400 block mb-1">State 1: Nominal</span>
-                            <p class="text-[11px] text-slate-400">Continuous S-band/X-band connection through the ELFO satellite. Full telemetry is actively transmitted.</p>
+                            <p class="text-[11px] text-slate-400 leading-normal">Continuous S-band/X-band connection through the ELFO satellite. Full telemetry is actively transmitted.</p>
                         </div>
                         <div class="bg-slate-950 p-3 rounded-lg border-l-4 border-amber-500 shadow-sm text-xs">
                             <span class="font-bold text-amber-400 block mb-1">State 2: Local Autonomy</span>
-                            <p class="text-[11px] text-slate-400">Signal lost. Scientific payloads halt. Vehicle initiates path planning to retreat to the last known safe zone.</p>
+                            <p class="text-[11px] text-slate-400 leading-normal">Signal lost. Scientific payloads halt. Vehicle initiates path planning to retreat to the last known safe zone.</p>
                         </div>
                         <div class="bg-slate-950 p-3 rounded-lg border-l-4 border-cyan-500 shadow-sm text-xs">
                             <span class="font-bold text-cyan-400 block mb-1">State 3: Deep Hibernation</span>
-                            <p class="text-[11px] text-slate-400">Outage exceeds 60 minutes. Drive motors disabled. Thermal heaters operate at survival threshold to protect electronics.</p>
+                            <p class="text-[11px] text-slate-400 leading-normal">Outage exceeds 60 minutes. Drive motors disabled. Thermal heaters operate at survival threshold to protect electronics.</p>
                         </div>
                     </div>
                 </div>
@@ -323,7 +341,7 @@
                 </ul>
 
                 <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
-                    This prevent premature transitions triggered by brief signal fades, keeping the rover from wasting precious thermal energy on unnecessary power cycles.
+                    This prevents premature transitions triggered by brief signal fades, keeping the rover from wasting precious thermal energy on unnecessary power cycles.
                 </p>
             </article>
 
@@ -372,7 +390,6 @@
   <div class="p-4 bg-slate-900 text-slate-400 text-xs italic text-center border-t border-slate-800/80">
     Sequential self-extraction diagram showing wheel-walking mechanics and bogie articulation while climbing steep, loose terrain.
   </div>
-</div>
             </article>
 
             <!-- SECTION 4: Power-Aware Operational Planning -->
@@ -392,15 +409,15 @@
 
                 <!-- HCM Blocks -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-4">
-                    <div class="bg-indigo-950/35 p-3 rounded-lg border border-indigo-900/50 text-xs">
+                    <div class="bg-[#0e162d] p-3 rounded-lg border border-indigo-900/50 text-xs">
                         <span class="font-bold text-indigo-400 block mb-1">1. Hibernate State</span>
                         <p class="text-slate-400 leading-relaxed text-[11px]">The system enters shadow zones. Non-essential power lines are turned off. Only vital electronics and heaters stay active to survive the cold.</p>
                     </div>
-                    <div class="bg-amber-950/35 p-3 rounded-lg border border-amber-900/50 text-xs">
+                    <div class="bg-[#241a0e] p-3 rounded-lg border border-amber-900/50 text-xs">
                         <span class="font-bold text-amber-400 block mb-1">2. Charge State</span>
                         <p class="text-slate-400 leading-relaxed text-[11px]">The rover parks on an incline facing the low sun. The solar panels gather maximum energy to charge the batteries up to 90% capacity.</p>
                     </div>
-                    <div class="bg-emerald-950/35 p-3 rounded-lg border border-emerald-900/50 text-xs">
+                    <div class="bg-[#0e241c] p-3 rounded-lg border border-emerald-900/50 text-xs">
                         <span class="font-bold text-emerald-400 block mb-1">3. Move State</span>
                         <p class="text-slate-400 leading-relaxed text-[11px]">The rover moves along the planned route to perform science tasks, using the stored battery energy down to a 35% safety threshold.</p>
                     </div>
@@ -427,20 +444,20 @@
                 </p>
 
                 <!-- Dynamic Filter Buttons -->
-                <div class="flex flex-wrap gap-1 mb-4">
-                    <button onclick="filterRisks('All')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-800 text-white border border-slate-700 transition-all">
+                <div class="flex flex-wrap gap-1.5 mb-4">
+                    <button onclick="filterRisks('All')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-800 text-white border border-slate-700 transition-all">
                         All Systems
                     </button>
-                    <button onclick="filterRisks('Comm')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks('Comm')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Communication
                     </button>
-                    <button onclick="filterRisks('Thermal')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks('Thermal')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Thermal
                     </button>
-                    <button onclick="filterRisks('Mech')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks('Mech')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Mechanical
                     </button>
-                    <button onclick="filterRisks('Power')" class="risk-filter-btn px-2.5 py-1 text-[11px] font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks('Power')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Power
                     </button>
                 </div>
@@ -480,14 +497,14 @@
         </main>
 
         <!-- ==================== RIGHT COLUMN: MISSION LOG FEED (20% Width) ==================== -->
-        <section class="w-full lg:w-[20%] bg-[#080c14] text-slate-200 p-4 flex flex-col shrink-0 border-t lg:border-t-0 border-slate-800/70">
+        <section class="w-full lg:w-[20%] bg-[#060a12] text-slate-200 p-4 flex flex-col shrink-0 border-t lg:border-t-0 border-slate-800/80">
             
             <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    Mission Console Log
+                    Onboard Logs
                 </span>
-                <span class="text-[9px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800">UTC-L</span>
+                <span class="text-[9px] bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded border border-slate-800">UTC-L</span>
             </div>
 
             <!-- Virtual Systems Mission Log Console -->
@@ -496,33 +513,53 @@
                 <p class="text-emerald-400">[14:29:03] State: NOMINAL. Satellite altitude: 10,000 km.</p>
             </div>
 
-            <div class="mt-4 pt-3 border-t border-slate-800/80 text-center">
-                <p class="text-[9px] text-slate-600 font-mono">Designed & Developed by Nandan Jha</p>
+            <div class="mt-4 pt-3 border-t border-slate-800/60 text-center">
+                <p class="text-[9px] text-slate-500 font-mono italic">Designed & Engineered by Nandan Jha</p>
             </div>
 
         </section>
 
     </div>
 
-    <!-- Graph Expand Modal -->
-    <div id="chart-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4">
-        <div class="bg-slate-950 border border-slate-800 w-full max-w-4xl p-6 rounded-2xl shadow-2xl relative">
-            <button onclick="closeChartModal()" class="absolute top-4 right-4 bg-slate-900 hover:bg-slate-800 text-slate-300 w-8 h-8 rounded-full flex justify-center items-center font-bold">
-                ✕
+    <!-- Scrollable Expand Modal -->
+    <div id="chart-modal" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col p-6 backdrop-blur-md">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
+            <div>
+                <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    📊 Complete Mission Telemetry History (Scroll Left/Right)
+                </h2>
+                <p class="text-xs text-slate-500">Analyze the entire 100-hour sequence. Click scenario buttons on the main screen to generate spiky anomalies, then expand here to analyze!</p>
+            </div>
+            <button onclick="closeChartModal()" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs font-bold hover:bg-red-950/80 hover:border-red-800/80 text-slate-300 transition">
+                ✕ Close Window
             </button>
-            <h3 class="text-base font-bold text-slate-100 mb-1 flex items-center gap-2">
-                📊 Detailed Mission Profile Graph
-            </h3>
-            <p class="text-xs text-slate-500 mb-4">Expanded view showing comparative telemetry tracking of internal battery state and real-time guidance latency spikes.</p>
-            <div class="modal-chart-container">
-                <canvas id="expandedTelemetryChart"></canvas>
+        </div>
+        
+        <!-- Horizontal Scroll Area for Long History -->
+        <div class="modal-scroll-wrapper flex-1">
+            <div class="modal-scroll-inner">
+                <canvas id="expandedChart"></canvas>
             </div>
         </div>
     </div>
 
     <!-- JavaScript Implementation -->
     <script>
-        // --- Core Application State Management ---
+        // Initialize dynamic history log (100 samples size for horizontal scrolling analytical capability)
+        const totalSamples = 100;
+        
+        // Generate continuous baseline history
+        const initialLabels = Array.from({length: totalSamples}, (_, i) => `T-${totalSamples - i}m`);
+        const initialBattery = Array.from({length: totalSamples}, (_, i) => {
+            // Generates clean charging and discharging cycles simulating continuous orbits
+            return Math.round(75 + Math.sin(i / 6) * 12 + (Math.random() * 2));
+        });
+        const initialLatency = Array.from({length: totalSamples}, (_, i) => {
+            // Stable latency punctuated by minor signal fluctuations
+            return parseFloat((1.2 + Math.sin(i / 15) * 0.15 + (Math.random() * 0.1)).toFixed(2));
+        });
+
+        // --- Core Telemetry History State ---
         const state = {
             currentTab: 'sec1',
             telemetry: {
@@ -534,7 +571,12 @@
             },
             timeline: Array.from({length: 12}, (_, i) => `${i*2}m`),
             batteryHistory: [80, 81, 82, 82, 81, 80, 82, 82, 81, 80, 81, 82],
-            latencyHistory: [1.2, 1.3, 1.2, 1.4, 1.3, 1.2, 1.3, 1.2, 1.3, 1.4, 1.3, 1.2]
+            latencyHistory: [1.2, 1.3, 1.2, 1.4, 1.3, 1.2, 1.3, 1.2, 1.3, 1.4, 1.3, 1.2],
+            
+            // Full high resolution historical buffers for scrollable evaluation modal
+            historicalLabels: initialLabels,
+            historicalBattery: initialBattery,
+            historicalLatency: initialLatency
         };
 
         let primaryChart = null;
@@ -547,14 +589,12 @@
             // Show selected section
             document.getElementById(sectionId).classList.add('active');
 
-            // Update tab button styles
-            document.querySelectorAll('.sec-tab-btn').forEach(btn => {
-                btn.classList.remove('text-cyan-400', 'border-b-2', 'border-cyan-400');
-                btn.classList.add('text-slate-400', 'hover:text-slate-100');
+            // Update tab button styles (Tactile hardware appearance)
+            document.querySelectorAll('.distinct-btn').forEach(btn => {
+                btn.classList.remove('distinct-btn-active');
             });
             const activeTabBtn = document.getElementById('tab-' + sectionId);
-            activeTabBtn.classList.remove('text-slate-400', 'hover:text-slate-100');
-            activeTabBtn.classList.add('text-cyan-400', 'border-b-2', 'border-cyan-400');
+            activeTabBtn.classList.add('distinct-btn-active');
             
             // Scroll middle pane to top smoothly
             document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
@@ -564,7 +604,6 @@
         function logToConsole(message, type = 'info') {
             const consoleEl = document.getElementById('mission-console-log');
             const p = document.createElement('p');
-            
             const timestamp = new Date().toTimeString().split(' ')[0];
             
             if (type === 'error') {
@@ -579,19 +618,17 @@
             
             p.innerHTML = `[${timestamp}] ${message}`;
             consoleEl.appendChild(p);
-            
-            // Auto scroll console to bottom
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        // --- Chart.js Styles for Dark Mode ---
-        const chartOptions = (isModal = false) => ({
+        // --- Chart Config & Rendering ---
+        const getChartOptions = (isModal = false) => ({
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'top',
-                    labels: { boxWidth: 10, color: '#94a3b8', font: { size: isModal ? 11 : 9 } }
+                    labels: { boxWidth: 10, color: '#94a3b8', font: { size: isModal ? 11 : 9, weight: 'bold' } }
                 }
             },
             scales: {
@@ -602,25 +639,26 @@
                     min: 0,
                     max: 100,
                     grid: { color: '#1e293b' },
-                    ticks: { color: '#94a3b8', font: { size: isModal ? 10 : 8 } }
+                    ticks: { color: '#64748b', font: { size: isModal ? 10 : 8 } },
+                    title: { display: isModal, text: 'Battery Charge Level (%)', color: '#94a3b8' }
                 },
                 y1: {
                     type: 'linear',
                     display: true,
                     position: 'right',
                     min: 0,
-                    max: 10,
+                    max: 12,
                     grid: { drawOnChartArea: false },
-                    ticks: { color: '#94a3b8', font: { size: isModal ? 10 : 8 } }
+                    ticks: { color: '#64748b', font: { size: isModal ? 10 : 8 } },
+                    title: { display: isModal, text: 'Signal Propagation Latency (s)', color: '#94a3b8' }
                 },
                 x: {
-                    ticks: { color: '#94a3b8', font: { size: isModal ? 10 : 8 } },
+                    ticks: { color: '#64748b', font: { size: isModal ? 9 : 8 } },
                     grid: { display: false }
                 }
             }
         });
 
-        // Initialize Charts
         function initCharts() {
             const ctxPrimary = document.getElementById('liveTelemetryChart').getContext('2d');
             primaryChart = new Chart(ctxPrimary, {
@@ -631,66 +669,67 @@
                         {
                             label: 'Battery SoC (%)',
                             data: state.batteryHistory,
-                            borderColor: '#10b981', // Emerald 500
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderColor: '#10b981', // Emerald
+                            backgroundColor: 'rgba(16, 185, 129, 0.03)',
                             borderWidth: 2,
                             tension: 0.3,
                             yAxisID: 'y'
                         },
                         {
-                            label: 'Relay Latency (s)',
+                            label: 'Link Delay (s)',
                             data: state.latencyHistory,
-                            borderColor: '#06b6d4', // Cyan 500
-                            backgroundColor: 'rgba(6, 182, 212, 0.05)',
+                            borderColor: '#06b6d4', // Cyan
+                            backgroundColor: 'rgba(6, 182, 212, 0.03)',
                             borderWidth: 2,
                             tension: 0.3,
                             yAxisID: 'y1'
                         }
                     ]
                 },
-                options: chartOptions(false)
+                options: getChartOptions(false)
             });
         }
 
-        // --- Expand/Enlarge Modal Logic ---
+        // --- Expand Modal & Render Super-Wide Chart ---
         function openChartModal() {
             document.getElementById('chart-modal').classList.remove('hidden');
             
-            // Build expanded chart inside the modal
             setTimeout(() => {
-                const ctxModal = document.getElementById('expandedTelemetryChart').getContext('2d');
+                const ctxModal = document.getElementById('expandedChart').getContext('2d');
                 if (expandedChart) expandedChart.destroy();
                 
                 expandedChart = new Chart(ctxModal, {
                     type: 'line',
                     data: {
-                        labels: state.timeline,
+                        labels: state.historicalLabels,
                         datasets: [
                             {
-                                label: 'Battery SoC (%)',
-                                data: state.batteryHistory,
+                                label: 'Battery Capacity (%)',
+                                data: state.historicalBattery,
                                 borderColor: '#10b981',
-                                backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                                backgroundColor: 'rgba(16, 185, 129, 0.04)',
                                 borderWidth: 3,
-                                pointRadius: 5,
+                                pointRadius: 4,
                                 tension: 0.3,
-                                yAxisID: 'y'
+                                yAxisID: 'y',
+                                fill: true
                             },
                             {
-                                label: 'Relay Latency (s)',
-                                data: state.latencyHistory,
+                                label: 'ELFO Link Latency (Seconds)',
+                                data: state.historicalLatency,
                                 borderColor: '#06b6d4',
-                                backgroundColor: 'rgba(6, 182, 212, 0.08)',
+                                backgroundColor: 'rgba(6, 182, 212, 0.04)',
                                 borderWidth: 3,
-                                pointRadius: 5,
-                                tension: 0.3,
-                                yAxisID: 'y1'
+                                pointRadius: 4,
+                                tension: 0.2,
+                                yAxisID: 'y1',
+                                fill: true
                             }
                         ]
                     },
-                    options: chartOptions(true)
+                    options: getChartOptions(true)
                 });
-            }, 100);
+            }, 50);
         }
 
         function closeChartModal() {
@@ -698,7 +737,7 @@
             if (expandedChart) expandedChart.destroy();
         }
 
-        // --- Interactive Scenario Core Engine ---
+        // --- Scenario Engine ---
         function triggerScenario(scenario) {
             const cardEl = document.getElementById('telemetry-card');
             const modeEl = document.getElementById('telemetry-mode');
@@ -708,14 +747,18 @@
             const slipEl = document.getElementById('telemetry-slip');
             const tempEl = document.getElementById('telemetry-temp');
 
-            // Reset dynamic styles and glows
+            // Reset panel animations & colors
             cardEl.className = 'p-4 bg-slate-900/60 rounded-xl border border-slate-800 transition-all duration-300';
-            modeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded transition-all';
+            modeEl.className = 'text-[10px] font-bold px-2.5 py-0.5 rounded';
+
+            let dynamicBattery, dynamicLatency;
 
             if (scenario === 'nominal') {
-                state.telemetry = { battery: 85, latency: 1.28, slip: 5.5, temp: 19.1, mode: 'NOMINAL' };
+                dynamicBattery = 85;
+                dynamicLatency = 1.28;
+                state.telemetry = { battery: dynamicBattery, latency: dynamicLatency, slip: 5.5, temp: 19.1, mode: 'NOMINAL' };
                 
-                cardEl.classList.add('glow-cyan');
+                cardEl.classList.add('panel-glow-cyan');
                 modeEl.classList.add('bg-cyan-950/50', 'text-cyan-400', 'border', 'border-cyan-500/30');
                 modeEl.textContent = 'NOMINAL';
                 
@@ -723,15 +766,17 @@
                 slipEl.textContent = '5.5%';
                 tempEl.textContent = '19.1 °C';
 
-                logToConsole('Environmental change: Nominal solar access re-established.', 'success');
-                logToConsole('ELFO high-gain link locked. Bandwidth optimal.', 'info');
+                logToConsole('Nominal solar and communication conditions locked.', 'success');
+                logToConsole('ELFO constellation link tracking verified high bandwidth.', 'info');
                 
                 showReportSection('sec2');
             } 
             else if (scenario === 'crater') {
-                state.telemetry = { battery: 74, latency: 9.85, slip: 14.8, temp: 12.0, mode: 'LOCAL AUTONOMY' };
+                dynamicBattery = 72;
+                dynamicLatency = 9.85;
+                state.telemetry = { battery: dynamicBattery, latency: dynamicLatency, slip: 14.8, temp: 12.0, mode: 'LOCAL AUTONOMY' };
                 
-                cardEl.classList.add('glow-amber', 'pulse-active');
+                cardEl.classList.add('panel-glow-amber');
                 modeEl.classList.add('bg-amber-950/50', 'text-amber-400', 'border', 'border-amber-500/30');
                 modeEl.textContent = 'LOCAL AUTONOMY';
                 
@@ -739,15 +784,17 @@
                 slipEl.textContent = '14.8%';
                 tempEl.textContent = '12.0 °C';
 
-                logToConsole('WARNING: Entering crater shadow line. Signal level dropping.', 'warning');
-                logToConsole('ELFO line-of-sight occluded. Switching navigation control to Local Path Planner.', 'warning');
+                logToConsole('Occlusion Alert: Navigating deep crater shadows.', 'warning');
+                logToConsole('ELFO Line-of-Sight compromised. Deploying onboard localized map planner.', 'warning');
                 
                 showReportSection('sec3');
             } 
             else if (scenario === 'eclipse') {
-                state.telemetry = { battery: 28, latency: 99.9, slip: 0.0, temp: -5.2, mode: 'DEEP HIBERNATION' };
+                dynamicBattery = 28;
+                dynamicLatency = 0.0; // Signals drop out during solar eclipses/power cuts
+                state.telemetry = { battery: dynamicBattery, latency: 12.0, slip: 0.0, temp: -5.2, mode: 'DEEP HIBERNATION' };
                 
-                cardEl.classList.add('glow-rose');
+                cardEl.classList.add('panel-glow-rose');
                 modeEl.classList.add('bg-indigo-950/50', 'text-indigo-400', 'border', 'border-indigo-500/30');
                 modeEl.textContent = 'HIBERNATION';
                 
@@ -755,25 +802,26 @@
                 slipEl.textContent = '0.0%';
                 tempEl.textContent = '-5.2 °C';
 
-                logToConsole('CRITICAL: Eclipse initiated. Available solar irradiance drops to 0.', 'error');
-                logToConsole('Battery capacity under safety limit (< 35%). Halting active movement.', 'error');
-                logToConsole('System State: DEEP HIBERNATION. Thermal management active.', 'warning');
+                logToConsole('Power Crisis: Eclipse detected. Available solar yields dropped below thresholds.', 'error');
+                logToConsole('Battery capacity < 35%. Initiating structural hibernation systems.', 'error');
                 
                 showReportSection('sec4');
             } 
             else if (scenario === 'slip') {
-                state.telemetry = { battery: 68, latency: 1.45, slip: 48.6, temp: 24.8, mode: 'RECOVERY ACTION' };
+                dynamicBattery = 64;
+                dynamicLatency = 1.45;
+                state.telemetry = { battery: dynamicBattery, latency: dynamicLatency, slip: 48.6, temp: 23.8, mode: 'RECOVERY ACTION' };
                 
-                cardEl.classList.add('glow-rose', 'pulse-active');
+                cardEl.classList.add('panel-glow-rose');
                 modeEl.classList.add('bg-rose-950/50', 'text-rose-400', 'border', 'border-rose-500/30');
                 modeEl.textContent = 'SLIP RECOVERY';
                 
                 latencyEl.textContent = '1.45 seconds';
                 slipEl.textContent = '48.6%';
-                tempEl.textContent = '24.8 °C';
+                tempEl.textContent = '23.8 °C';
 
-                logToConsole('WARNING: High traction slip detected on drive wheels.', 'warning');
-                logToConsole('Initiating mechanical self-extraction. Rocker-bogie bogie shift activated.', 'info');
+                logToConsole('Surface traction slip detected over abrasive loose regolith.', 'warning');
+                logToConsole('Onboard Bogie adjustments activated. Swapping to active wheel walking extraction.', 'info');
                 
                 showReportSection('sec3');
             }
@@ -789,13 +837,25 @@
                 batteryBarEl.className = "bg-cyan-500 h-full rounded-full transition-all duration-500";
             }
 
-            // Update telemetry lists
+            // --- Shift Mini Live Metrics Arrays ---
             state.batteryHistory.shift();
             state.batteryHistory.push(state.telemetry.battery);
             state.latencyHistory.shift();
-            state.latencyHistory.push(state.telemetry.latency === 'NO SIGNAL' ? 10 : state.telemetry.latency);
-            
+            state.latencyHistory.push(state.telemetry.latency === 'NO SIGNAL' ? 12 : state.telemetry.latency);
             primaryChart.update();
+
+            // --- Append Dynamic Points directly to the Modal's 100-sample arrays ---
+            // Remove first indices, append new simulated event metrics to the end of the timeline
+            state.historicalBattery.shift();
+            state.historicalBattery.push(state.telemetry.battery);
+            
+            state.historicalLatency.shift();
+            state.historicalLatency.push(state.telemetry.latency === 'NO SIGNAL' ? 0.0 : state.telemetry.latency);
+
+            // Dynamically update expanded chart inside active modal viewport if it's currently open
+            if (expandedChart) {
+                expandedChart.update();
+            }
         }
 
         // --- Risk Assessment Data & Filtering Logic ---
@@ -814,9 +874,8 @@
                 btn.classList.remove('bg-slate-800', 'text-white');
                 btn.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
             });
-            
             event.target.classList.add('bg-slate-800', 'text-white');
-            event.target.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+            event.target.classList.remove('bg-slate-900', 'text-slate-400 border-slate-800');
 
             renderRiskTable(systemFilter);
         }
