@@ -11,18 +11,6 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- 
-    Chosen Palette: Deep Space Dark (Base black/slate-950, panels slate-900/80, borders slate-800, text slate-200, accent cyan/emerald/amber) -->
-    <!-- Application Structure Plan: 
-         - A premium 3-column dashboard with an arctic space theme.
-         - Left Column (30% width): Interactive elementary simulator, status cards, and mini telemetry graph.
-         - Middle Column (50% width): Main technical report navigated by 5 highly physical, tactile card buttons.
-         - Right Column (20% width): Live scrolling terminal showing timestamped system logs.
-         - Enlarge Modal: Contains a 2500px wide, horizontally-scrollable historical telemetry chart linked to simulated actions.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-    
-
     <style>
         /* Custom Space Theme Scrollbars */
         ::-webkit-scrollbar {
@@ -113,6 +101,7 @@
     <header class="bg-[#080d1a] border-b border-slate-800/80 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 z-30 shadow-md">
         <div>
             <div class="flex items-center gap-3">
+                <span class="inline-flex items-center bg-cyan-500/10 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded border border-cyan-500/20 tracking-wider">LUNAR TELEMETRY</span>
                 <h1 class="text-base font-extrabold tracking-tight text-slate-100">ELFO-Guided Autonomous Lunar Navigation</h1>
             </div>
             <p class="text-xs text-slate-400 mt-0.5">Systems Contingency, Robustness, and Risk Mitigation Suite</p>
@@ -281,7 +270,7 @@
                     </div>
                 </div>
 
-                <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+                 <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
   <img 
     src="ChatGPT Image May 20, 2026, 07_14_11 PM.png" 
     alt="Failure-aware orbital control loop systems diagram"
@@ -390,6 +379,7 @@
   <div class="p-4 bg-slate-900 text-slate-400 text-xs italic text-center border-t border-slate-800/80">
     Sequential self-extraction diagram showing wheel-walking mechanics and bogie articulation while climbing steep, loose terrain.
   </div>
+</div>
             </article>
 
             <!-- SECTION 4: Power-Aware Operational Planning -->
@@ -443,21 +433,21 @@
                     This interactive **Risk Assessment Matrix** lists the identified critical failure points of the mission, categorized by sub-system. Use the filter buttons below to focus on specific systems engineering domains and review their severity level and designed mitigation procedures.
                 </p>
 
-                <!-- Dynamic Filter Buttons -->
+                <!-- Dynamic Filter Buttons (FIXED: pass 'this' keyword properly) -->
                 <div class="flex flex-wrap gap-1.5 mb-4">
-                    <button onclick="filterRisks('All')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-800 text-white border border-slate-700 transition-all">
+                    <button onclick="filterRisks(this, 'All')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white border border-slate-700 transition-all">
                         All Systems
                     </button>
-                    <button onclick="filterRisks('Comm')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks(this, 'Comm')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Communication
                     </button>
-                    <button onclick="filterRisks('Thermal')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks(this, 'Thermal')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Thermal
                     </button>
-                    <button onclick="filterRisks('Mech')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks(this, 'Mech')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Mechanical
                     </button>
-                    <button onclick="filterRisks('Power')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
+                    <button onclick="filterRisks(this, 'Power')" class="risk-filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition-all">
                         Power
                     </button>
                 </div>
@@ -845,7 +835,6 @@
             primaryChart.update();
 
             // --- Append Dynamic Points directly to the Modal's 100-sample arrays ---
-            // Remove first indices, append new simulated event metrics to the end of the timeline
             state.historicalBattery.shift();
             state.historicalBattery.push(state.telemetry.battery);
             
@@ -858,7 +847,7 @@
             }
         }
 
-        // --- Risk Assessment Data & Filtering Logic ---
+        // --- Risk Assessment Data & Filtering Logic (FIXED JS LOGIC) ---
         const riskTableData = [
             { system: 'Comm', name: 'Topographic Blockage', impact: 'High', prob: 'High', mitigation: 'Three-tiered fallback logic initiates Local Autonomy to drive out of shadow zones.' },
             { system: 'Comm', name: 'Signal Interference', impact: 'Medium', prob: 'Medium', mitigation: 'Adaptive signal tracking coupled with 10,000 km orbital altitude design.' },
@@ -869,13 +858,17 @@
             { system: 'Power', name: 'Low Battery (< 35% SoC)', impact: 'High', prob: 'Medium', mitigation: 'Automated transition to Deep Hibernation mode with solar array positioning.' }
         ];
 
-        function filterRisks(systemFilter) {
+        // FIXED: Now receives 'clickedBtn' directly from HTML's 'this' to avoid event target bugs.
+        function filterRisks(clickedBtn, systemFilter) {
+            // Reset all buttons to default dark gray look
             document.querySelectorAll('.risk-filter-btn').forEach(btn => {
-                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.remove('bg-slate-800', 'text-white', 'border-slate-700');
                 btn.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
             });
-            event.target.classList.add('bg-slate-800', 'text-white');
-            event.target.classList.remove('bg-slate-900', 'text-slate-400 border-slate-800');
+            
+            // Highlight the specifically clicked button
+            clickedBtn.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+            clickedBtn.classList.add('bg-slate-800', 'text-white', 'border-slate-700');
 
             renderRiskTable(systemFilter);
         }
